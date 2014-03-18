@@ -4,7 +4,7 @@
         "DefaultOWRoles": {
             "Description": "Yes = have OpsWorks use existing IAM roles, or No=create roles in the CloudFormation stack.",
             "Type": "String",
-            "Default": "Yes",
+            "Default": "No",
             "AllowedValues": [
                 "Yes",
                 "No"
