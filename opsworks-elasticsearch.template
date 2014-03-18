@@ -322,7 +322,7 @@
                         "Ref": "searchLayer"
                     }
                 ],
-                "InstanceType": "c3.large"
+                "InstanceType": "m3.large"
             }
         },
         "myInstance2": {
@@ -336,7 +336,7 @@
                         "Ref": "searchLayer"
                     }
                 ],
-                "InstanceType": "c3.large"
+                "InstanceType": "m3.large"
             }
         },
         "myInstance3": {
@@ -350,7 +350,7 @@
                         "Ref": "searchLayer"
                     }
                 ],
-                "InstanceType": "c3.large"
+                "InstanceType": "m3.large"
             }
         }
     }
