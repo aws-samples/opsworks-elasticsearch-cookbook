@@ -310,6 +310,48 @@
                     }
                 ]
             }
+        },
+        "myInstance1": {
+            "Type": "AWS::OpsWorks::Instance",
+            "Properties": {
+                "StackId": {
+                    "Ref": "myStack"
+                },
+                "LayerIds": [
+                    {
+                        "Ref": "searchLayer"
+                    }
+                ],
+                "InstanceType": "c3.large"
+            }
+        },
+        "myInstance2": {
+            "Type": "AWS::OpsWorks::Instance",
+            "Properties": {
+                "StackId": {
+                    "Ref": "myStack"
+                },
+                "LayerIds": [
+                    {
+                        "Ref": "searchLayer"
+                    }
+                ],
+                "InstanceType": "c3.large"
+            }
+        },
+        "myInstance3": {
+            "Type": "AWS::OpsWorks::Instance",
+            "Properties": {
+                "StackId": {
+                    "Ref": "myStack"
+                },
+                "LayerIds": [
+                    {
+                        "Ref": "searchLayer"
+                    }
+                ],
+                "InstanceType": "c3.large"
+            }
         }
     }
 }
