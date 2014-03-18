@@ -23,7 +23,7 @@
         "S3Archive": {
             "Description": "S3ArchiveURL",
             "Type": "String",
-            "Default": "https://s3.amazonaws.com/chrisb/elasticsearch-cookbooks-2014-03-16.zip"
+            "Default": "https://s3.amazonaws.com/your-bucket/your-elasticsearch-cookbooks.zip"
         }
     },
     "Conditions": {
