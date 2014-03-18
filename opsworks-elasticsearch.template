@@ -1,0 +1,315 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "DefaultOWRoles": {
+            "Description": "Yes = have OpsWorks use existing IAM roles, or No=create roles in the CloudFormation stack.",
+            "Type": "String",
+            "Default": "Yes",
+            "AllowedValues": [
+                "Yes",
+                "No"
+            ]
+        },
+        "WebUsername": {
+            "Description": "WebUsername",
+            "Type": "String",
+            "Default": "username"
+        },
+        "WebPassword": {
+            "Description": "WebPassword",
+            "Type": "String",
+            "Default": "password"
+        },
+        "S3Archive": {
+            "Description": "S3ArchiveURL",
+            "Type": "String",
+            "Default": "https://s3.amazonaws.com/chrisb/elasticsearch-cookbooks-2014-03-16.zip"
+        }
+    },
+    "Conditions": {
+        "DefaultOWRolesCondition": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DefaultOWRoles"
+                },
+                "Yes"
+            ]
+        },
+        "NotDefaultOWRolesCondition": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DefaultOWRoles"
+                },
+                "No"
+            ]
+        }
+    },
+    "Resources": {
+        "ServiceRole": {
+            "Condition": "NotDefaultOWRolesCondition",
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "opsworks.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "opsworks-service",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:*",
+                                        "iam:PassRole",
+                                        "cloudwatch:GetMetricStatistics",
+                                        "elasticloadbalancing:*"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "OpsWorksEC2Role": {
+            "Condition": "NotDefaultOWRolesCondition",
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "opsworks-ec2-role",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:DescribeInstances",
+                                        "ec2:DescribeRegions",
+                                        "ec2:DescribeSecurityGroups",
+                                        "ec2:DescribeTags",
+                                        "cloudwatch:PutMetricData"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "InstanceRole": {
+            "Condition": "NotDefaultOWRolesCondition",
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "OpsWorksEC2Role"
+                    }
+                ]
+            }
+        },
+        "myStack": {
+            "Type": "AWS::OpsWorks::Stack",
+            "Properties": {
+                "Name": {
+                    "Ref": "AWS::StackName"
+                },
+                "CustomJson": {
+                    "java": {
+                        "jdk_version": "7",
+                        "oracle": {
+                            "accept_oracle_download_terms": "true"
+                        },
+                        "accept_license_agreement": "true",
+                        "install_flavor": "oracle"
+                    },
+                    "elasticsearch": {
+                        "nginx": {
+                            "users": [
+                                {
+                                    "username": {
+                                        "Ref": "WebUsername"
+                                    },
+                                    "password": {
+                                        "Ref": "WebPassword"
+                                    }
+                                }
+                            ],
+                            "allow_cluster_api": "true",
+                            "port": 80
+                        },
+                        "cluster": {
+                            "name": "opsworks-elasticsearch"
+                        },
+                        "gateway": {
+                            "expected_nodes": 3
+                        },
+                        "discovery": {
+                            "type": "ec2",
+                            "zen": {
+                                "minimum_master_nodes": 2,
+                                "ping": {
+                                    "multicast": {
+                                        "enabled": false
+                                    }
+                                }
+                            },
+                            "ec2": {
+                                "tag": {
+                                    "opsworks:stack": {
+                                        "Ref": "AWS::StackName"
+                                    }
+                                }
+                            }
+                        },
+                        "path": {
+                            "data": "/mnt/elasticsearch-data"
+                        },
+                        "cloud": {
+                            "aws": {
+                                "region": "us-east-1"
+                            }
+                        },
+                        "custom_config": {
+                            "cluster.routing.allocation.awareness.attributes": "rack_id"
+                        }
+                    }
+                },
+                "ServiceRoleArn": {
+                    "Fn::If": [
+                        "DefaultOWRolesCondition",
+                        {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "arn:aws:iam::",
+                                    {
+                                        "Ref": "AWS::AccountId"
+                                    },
+                                    ":role/aws-opsworks-service-role"
+                                ]
+                            ]
+                        },
+                        {
+                            "Fn::GetAtt": [
+                                "ServiceRole",
+                                "Arn"
+                            ]
+                        }
+                    ]
+                },
+                "DefaultInstanceProfileArn": {
+                    "Fn::If": [
+                        "DefaultOWRolesCondition",
+                        {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "arn:aws:iam::",
+                                    {
+                                        "Ref": "AWS::AccountId"
+                                    },
+                                    ":instance-profile/aws-opsworks-ec2-role"
+                                ]
+                            ]
+                        },
+                        {
+                            "Fn::GetAtt": [
+                                "InstanceRole",
+                                "Arn"
+                            ]
+                        }
+                    ]
+                },
+                "UseCustomCookbooks": "true",
+                "CustomCookbooksSource": {
+                    "Type": "archive",
+                    "Url": {
+                        "Ref": "S3Archive"
+                    }
+                }
+            }
+        },
+        "elasticsearchtest": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "so that ES cluster can find other nodes"
+            }
+        },
+        "searchLayer": {
+            "Type": "AWS::OpsWorks::Layer",
+            "Properties": {
+                "StackId": {
+                    "Ref": "myStack"
+                },
+                "Name": "Search",
+                "Type": "custom",
+                "Shortname": "search",
+                "CustomRecipes": {
+                    "Setup": [
+                        "apt",
+                        "ark",
+                        "elasticsearch",
+                        "elasticsearch::aws",
+                        "elasticsearch::proxy",
+                        "java",
+                        "layer-custom::esplugins",
+                        "layer-custom::allocation-awareness",
+                        "layer-custom::esmonit",
+                        "layer-custom::cloudwatch-custom"
+                    ]
+                },
+                "EnableAutoHealing": "true",
+                "AutoAssignElasticIps": "false",
+                "AutoAssignPublicIps": "true",
+                "VolumeConfigurations": [
+                    {
+                        "MountPoint": "/mnt/elasticsearch-data",
+                        "NumberOfDisks": 1,
+                        "Size": 100
+                    }
+                ],
+                "CustomSecurityGroupIds": [
+                    {
+                        "Fn::GetAtt": [
+                            "elasticsearchtest",
+                            "GroupId"
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
