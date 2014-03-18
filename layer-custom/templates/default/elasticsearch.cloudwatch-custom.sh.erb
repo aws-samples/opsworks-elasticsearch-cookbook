@@ -1,0 +1,2 @@
+#!/bin/sh
+aws cloudwatch put-metric-data --region <%= node[:opsworks][:instance][:region] %> --namespace "ElasticSearch-<%= node.elasticsearch[:cluster][:name] %>" --metric-name "number_of_data_nodes" --unit "Count" --value "`curl -s 'http://localhost:9200/_cluster/health' | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["number_of_data_nodes"]'`"
