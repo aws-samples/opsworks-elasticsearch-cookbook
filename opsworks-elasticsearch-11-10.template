@@ -23,7 +23,7 @@
         "CookbookRepo": {
             "Description": "GitURL",
             "Type": "String",
-            "Default": "https://github.com/amazonwebservices/opsworks-elasticsearch-cookbook"
+            "Default": "https://github.com/ryanvanderpol/opsworks-elasticsearch-cookbook"
         }
     },
     "Conditions": {
@@ -302,7 +302,7 @@
                     {
                         "MountPoint": "/mnt/elasticsearch-data",
                         "NumberOfDisks": 1,
-                        "Size": 100
+                        "Size": 10
                     }
                 ],
                 "CustomSecurityGroupIds": [
