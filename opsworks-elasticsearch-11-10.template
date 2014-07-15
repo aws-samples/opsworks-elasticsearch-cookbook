@@ -2,9 +2,7 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Parameters": {
         "DefaultOWRoles": {
-            "Description": "Yes = have OpsWorks use existing IAM roles from another OpsWorks stack, or No=create roles in the 
-
-CloudFormation stack.",
+            "Description": "Yes = have OpsWorks use existing IAM roles from another OpsWorks stack, or No=create roles in the CloudFormation stack.",
             "Type": "String",
             "Default": "Yes",
             "AllowedValues": [
@@ -258,12 +256,12 @@ CloudFormation stack.",
 		"ConfigurationManager": {
 			"Name" : "Chef",
 			"Version" : "11.10"
-		},
+		  },
                 "UseCustomCookbooks": "true",
                 "CustomCookbooksSource": {
                     "Type": "git",
                     "Url": {
-                        "Ref": "S3Archive"
+                        "Ref": "CookbookRepo"
                     }
                 }
             }
