@@ -261,7 +261,7 @@
                 "CustomCookbooksSource": {
                     "Type": "git",
                     "Url": {
-                        "Ref": "S3Archive"
+                        "Ref": "CookbookRepo"
                     }
                 }
             }
