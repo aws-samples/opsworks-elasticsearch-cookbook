@@ -33,8 +33,6 @@
 
 node.default.elasticsearch[:skip_restart] = true
 
-if  ! node[:es][:plugins].empty?
-  node[:es][:plugins].each do |plug|
-    install_plugin plug
-  end
+node[:es][:plugins].each do |plug|
+  install_plugin plug
 end
