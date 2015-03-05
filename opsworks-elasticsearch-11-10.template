@@ -168,7 +168,8 @@
                                 }
                             ],
                             "allow_cluster_api": "true",
-                            "port": 80
+                            "port": 80,
+                            "ssl": {}
                         },
                         "cluster": {
                             "name": "opsworks-elasticsearch"
